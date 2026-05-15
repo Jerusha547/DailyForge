@@ -3,11 +3,13 @@ import mongoose from "mongoose";
 // User schema
 const userSchema = mongoose.Schema(
   {
-    name: { type: String, required: true},
+    name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
+    resetPasswordToken: { type: String },
+    resetPasswordExpire: { type: Date },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // User schema model

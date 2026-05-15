@@ -7,6 +7,7 @@ const Login = () => {
   // two states for inputs
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   // useNavigate object
   const navigate = useNavigate();
@@ -19,15 +20,19 @@ const Login = () => {
     // prevents page from refreshing
     e.preventDefault();
 
-    // send request to server
+    // clear old errors
+    setErrorMessage("");
+
     try {
+      // send request to server
       const res = await api.post("/auth/login", {
         email,
         password,
       });
+
       console.log("Login success: ", res.data);
 
-      // save token in localstorage for later api calls
+      // save token in localstorage
       localStorage.setItem("token", res.data.token);
       setToken(res.data.token);
 
@@ -38,12 +43,18 @@ const Login = () => {
       // redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
-      // handle error
       console.log("Login failed");
       console.log(error.response?.data || error.message);
+
+      const message = error.response?.data?.message;
+
+      if (message) {
+        setErrorMessage(message);
+      } else {
+        setErrorMessage("Login failed. Please check your credentials.");
+      }
     }
   };
-
   // login component
   return (
     <form
@@ -57,7 +68,15 @@ const Login = () => {
       <div className="text-center space-y-1 mb-3">
         <h1 className="text-3xl font-bold text-main">Login</h1>
       </div>
-
+      {errorMessage && (
+        <div
+          className="
+      bg-red-100 border border-red-400
+      text-red-700 px-4 py-3 rounded-md text-sm"
+        >
+          {errorMessage}
+        </div>
+      )}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium text-main">
           Email
@@ -116,6 +135,15 @@ const Login = () => {
       >
         Login
       </button>
+      <p
+        onClick={() => navigate("/forgot-password")}
+        className="
+    text-sm text-center text-blue-500
+    cursor-pointer hover:underline
+  "
+      >
+        Forgot Password?
+      </p>
 
       <p className="text-center text-sm text-muted">
         Don't have an account?{" "}

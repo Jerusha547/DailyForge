@@ -1,7 +1,10 @@
 import express from "express";
 import { getUser, login, signup } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-
+import {
+  forgotPassword,
+  resetPassword,
+} from "../controllers/authController.js";
 // router object for auth
 export const authRouter = express.Router();
 
@@ -13,3 +16,7 @@ authRouter.post("/login", login);
 
 // Route for get user (me)
 authRouter.get("/me", authMiddleware, getUser);
+
+authRouter.post("/forgot-password", forgotPassword);
+
+authRouter.post("/reset-password/:token", resetPassword);

@@ -1,6 +1,8 @@
+import nodemailer from "nodemailer";
 import User from "../src/models/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 
 // sign up function
 export const signup = async (req, res) => {
@@ -54,16 +56,34 @@ export const login = async (req, res) => {
         .json({ message: "Email and password are required" });
     }
 
+    // // check if user exists or not
+    // const user = await User.findOne({ email });
+    // if (!user) {
+    //   return res.status(409).json({ message: "User does not exist" });
+    // }
+
+    // // check password using bcrypt
+    // const passwordCheck = await bcrypt.compare(password, user.password);
+    // if (!passwordCheck) {
+    //   return res.status(401).json({ message: "Password does not match" });
+    // }
+
     // check if user exists or not
     const user = await User.findOne({ email });
+
     if (!user) {
-      return res.status(409).json({ message: "User does not exist" });
+      return res.status(404).json({
+        message: "User does not exist. Please sign up first.",
+      });
     }
 
     // check password using bcrypt
     const passwordCheck = await bcrypt.compare(password, user.password);
+
     if (!passwordCheck) {
-      return res.status(401).json({ message: "Password does not match" });
+      return res.status(401).json({
+        message: "Incorrect password. Please try again.",
+      });
     }
 
     // generate jwt token
@@ -74,7 +94,118 @@ export const login = async (req, res) => {
   } catch (error) {
     // error handling
     console.log("Login error: ", error);
-    return res.status(500).json({ message: "Server error during login" });
+    // return res.status(500).json({ message: "Server error during login" });
+    return res
+      .status(500)
+      .json({ message: "Login failed. Please check your credentials." });
+  }
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    // get email
+    const { email } = req.body;
+
+    // find user
+    const user = await User.findOne({ email });
+
+    // check user exists
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    // save token in database
+    user.resetPasswordToken = resetToken;
+
+    // token expiry (15 mins)
+    user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+    await user.save();
+
+    // frontend reset link
+    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset",
+      text: `Reset your password using this link: ${resetURL}`,
+    });
+
+    return res.status(200).json({
+      message: "Password reset link sent to email",
+    });
+  } catch (error) {
+    console.log("Forgot password error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    // get token from params
+    const { token } = req.params;
+
+    // get new password
+    const { password } = req.body;
+
+    // find matching user
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: {
+        $gt: Date.now(),
+      },
+    });
+
+    // invalid token
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid or expired token",
+      });
+    }
+
+    // hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // update password
+    user.password = hashedPassword;
+
+    // remove token
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Password reset successful",
+    });
+  } catch (error) {
+    console.log("Reset password error:", error);
+
+    return res.status(500).json({
+      message: "Server error",
+    });
   }
 };
 

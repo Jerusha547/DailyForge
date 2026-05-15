@@ -8,6 +8,7 @@ const Signup = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   // useNavigate object
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     // prevents page from refreshing
     e.preventDefault();
+    setErrorMessage("");
 
     // send request to server
     try {
@@ -40,9 +42,16 @@ const Signup = () => {
       // redirect to dashboard
       navigate("/dashboard");
     } catch (error) {
-      // handle error
       console.log("Signup failed");
       console.log(error.response?.data || error.message);
+
+      const message = error.response?.data?.message;
+
+      if (message) {
+        setErrorMessage(message);
+      } else {
+        setErrorMessage("Signup failed. Please try again.");
+      }
     }
   };
 
@@ -60,6 +69,16 @@ const Signup = () => {
       <div className="text-center space-y-1 mb-3">
         <h1 className="text-3xl font-bold text-main">Signup</h1>
       </div>
+      {errorMessage && (
+        <div
+          className="
+      bg-red-100 border border-red-400
+      text-red-700 px-4 py-3 rounded-md text-sm
+    "
+        >
+          {errorMessage}
+        </div>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <label htmlFor="name" className="text-sm font-medium text-main">
