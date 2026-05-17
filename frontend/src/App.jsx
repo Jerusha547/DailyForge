@@ -9,6 +9,10 @@ import ProtectedRoutes from "./components/ProtectedRoutes.jsx";
 import Tasks from "./pages/Tasks.jsx";
 import RoutineBuilder from "./pages/RoutineBuilder.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
+import Footer from "./components/Footer.jsx";
+import NotFound from "./pages/NotFound.jsx";
+import About from "./pages/About.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
 
 const App = () => {
   return (
@@ -21,6 +25,7 @@ const App = () => {
           <Route path="/signup" element={<Signup />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/about" element={<About />} />
           <Route
             path="/dashboard"
             element={
@@ -45,9 +50,13 @@ const App = () => {
               </ProtectedRoutes>
             }
           />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
+      <Footer />
+      <ScrollToTop />
     </BrowserRouter>
+    
   );
 };
 
