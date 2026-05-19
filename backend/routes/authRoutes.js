@@ -1,5 +1,5 @@
 import express from "express";
-import { getUser, login, signup } from "../controllers/authController.js";
+import { getUser, login, signup, logout } from "../controllers/authController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import {
   forgotPassword,
@@ -20,3 +20,5 @@ authRouter.get("/me", authMiddleware, getUser);
 authRouter.post("/forgot-password", forgotPassword);
 
 authRouter.post("/reset-password/:token", resetPassword);
+// Route for logout
+authRouter.post("/logout", logout);

@@ -16,7 +16,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   // useContext for auth
-  const { setUser, setToken } = useContext(AuthContext);
+  const { setUser } = useContext(AuthContext);
 
   // submit handler
   const handleSubmit = async (e) => {
